@@ -1,9 +1,8 @@
+# app.py - AI Crop Recommendation (Bilingual)
 import streamlit as st
 from pathlib import Path
 import pandas as pd
 import altair as alt
-
-# Import helper functions
 from crop_predictor import FEATURES, load_model, recommend_topk, load_metadata
 
 # -------------------------------
@@ -14,10 +13,47 @@ MODEL_PATH = EXPORT_DIR / "crop_recommender_rf.joblib"
 META_PATH = EXPORT_DIR / "model_metadata.json"
 
 # -------------------------------
-# Load model and metadata
+# Page Config
 # -------------------------------
-st.set_page_config(page_title="AI Crop Recommendation 🌱", layout="centered")
+st.set_page_config(page_title="AI Crop Recommendation 🌱", layout="wide")
 
+# -------------------------------
+# Custom CSS
+# -------------------------------
+st.markdown("""
+    <style>
+    .stApp {
+        background: linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)), 
+                    url("https://images.unsplash.com/photo-1500937386664-56d1dfef3854?auto=format&fit=crop&w=1600&q=80");
+        background-size: cover;
+        background-position: center;
+        color: white !important;
+    }
+    h1, h2, h3, h4, h5 {
+        color: white !important;
+    }
+    div.stButton > button {
+        background-color: #4caf50;
+        color: white;
+        border-radius: 25px;
+        padding: 0.6em 1.5em;
+        font-weight: bold;
+        border: none;
+    }
+    div.stButton > button:hover {
+        background-color: #388e3c;
+    }
+    div[data-baseweb="select"] > div {
+        background-color: white !important;
+        color: black !important;
+        border-radius: 8px;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+# -------------------------------
+# Load Model
+# -------------------------------
 with st.spinner("Loading model..."):
     try:
         model = load_model(MODEL_PATH.as_posix())
@@ -28,17 +64,14 @@ with st.spinner("Loading model..."):
 metadata = load_metadata(META_PATH.as_posix())
 
 # -------------------------------
-# Language Selection
-# -------------------------------
-lang = st.sidebar.selectbox("Language / भाषा", ["English", "हिंदी"])
-
-# -------------------------------
 # Translation dictionary
 # -------------------------------
 trans = {
     "English": {
-        "title": "🌱 AI-based Crop Recommendation System",
-        "model_info": "ℹ️ Model Info",
+        "hero_title": "Earth-Friendly Agriculture for a Better Tomorrow 🌍",
+        "hero_sub": "Unleash creativity in farming — discover innovative techniques to boost productivity and deepen your connection with the land.",
+        "get_started": "Get Started Now",
+        "learn_service": "Learn Service",
         "enter_conditions": "Enter Soil & Weather Conditions",
         "Nitrogen": "Nitrogen (N)",
         "Phosphorus": "Phosphorus (P)",
@@ -53,8 +86,10 @@ trans = {
         "probabilities": "📊 Prediction Probabilities"
     },
     "हिंदी": {
-        "title": "🌱 एआई आधारित फसल सिफारिश प्रणाली",
-        "model_info": "ℹ️ मॉडल जानकारी",
+        "hero_title": "एक बेहतर कल के लिए पर्यावरण-अनुकूल कृषि 🌍",
+        "hero_sub": "खेती में रचनात्मकता को उजागर करें — उत्पादकता बढ़ाने और भूमि से गहरा संबंध बनाने के लिए नई तकनीकों की खोज करें।",
+        "get_started": "अभी शुरू करें",
+        "learn_service": "सेवा जानें",
         "enter_conditions": "मिट्टी और मौसम की जानकारी दर्ज करें",
         "Nitrogen": "नाइट्रोजन (N)",
         "Phosphorus": "फॉस्फोरस (P)",
@@ -70,15 +105,70 @@ trans = {
     }
 }
 
+# -------------------------------
+# Crop name translations
+# -------------------------------
+crop_trans = {
+    "rice": "चावल",
+    "wheat": "गेहूँ",
+    "maize": "मक्का",
+    "chickpea": "चना",
+    "kidneybeans": "राजमा",
+    "pigeonpeas": "अरहर",
+    "mothbeans": "मटकी",
+    "mungbean": "मूँग",
+    "blackgram": "उड़द",
+    "lentil": "मसूर",
+    "pomegranate": "अनार",
+    "banana": "केला",
+    "mango": "आम",
+    "grapes": "अंगूर",
+    "watermelon": "तरबूज",
+    "muskmelon": "खरबूजा",
+    "apple": "सेब",
+    "orange": "संतरा",
+    "papaya": "पपीता",
+    "coconut": "नारियल",
+    "cotton": "कपास",
+    "jute": "जूट",
+    "coffee": "कॉफ़ी"
+}
+
+# -------------------------------
+# Language Selector + Hero Section
+# -------------------------------
+lang = st.selectbox("🌐 Select Language / भाषा चुनें", ["English", "हिंदी"])
 t = trans[lang]
 
-st.title(t["title"])
-st.sidebar.header(t["model_info"])
-st.sidebar.json(metadata)
+st.markdown(
+    f"""
+    <div style="padding: 60px 20px; text-align:center;">
+        <h1 style="font-size: 3rem; font-weight: bold;">
+            {t["hero_title"]}
+        </h1>
+        <p style="font-size: 1.2rem; max-width: 700px; margin:auto; color: #ddd;">
+            {t["hero_sub"]}
+        </p>
+        <div style="margin-top: 20px;">
+            <a href="#prediction" style="text-decoration: none;">
+                <button style="background-color:#c6ff00; color:black; padding: 0.7em 1.5em; border-radius: 30px; border:none; font-weight:bold; margin-right:10px;">
+                    {t["get_started"]}
+                </button>
+            </a>
+            <a href="#service" style="text-decoration: none;">
+                <button style="background-color:white; color:black; padding: 0.7em 1.5em; border-radius: 30px; border:none; font-weight:bold;">
+                    {t["learn_service"]}
+                </button>
+            </a>
+        </div>
+    </div>
+    """, unsafe_allow_html=True
+)
 
 # -------------------------------
-# User Inputs
+# Prediction Section
 # -------------------------------
+st.markdown("<div id='prediction'></div>", unsafe_allow_html=True)
 st.header(t["enter_conditions"])
 
 col1, col2 = st.columns(2)
@@ -113,46 +203,21 @@ if st.button(t["recommend"]):
             k=k
         )
 
-        # If language is Hindi, translate crop names (simple mapping example)
-        if lang == "हिंदी":
-            crop_translation = {
-                "rice": "चावल",
-                "maize": "मकई",
-                "chickpea": "चना",
-                "kidneybeans": "राजमा",
-                "pigeonpeas": "अरहर/तूर",
-                "mothbeans": "मोठ",
-                "mungbean": "मूँग",
-                "blackgram": "उड़द",
-                "lentil": "मसूर",
-                "pomegranate": "अनार",
-                "banana": "केला",
-                "mango": "आम",
-                "grapes": "अंगूर",
-                "watermelon": "तरबूज",
-                "muskmelon": "खरबूजा",
-                "apple": "सेब",
-                "orange": "संतरा",
-                "papaya": "पपीता",
-                "coconut": "नारियल",
-                "cotton": "कपास",
-                "jute": "जूट",
-                "coffee": "कॉफ़ी"
-            }
-            topk = [(crop_translation.get(crop.lower(), crop), score) for crop, score in topk]
-            labels = [crop_translation.get(crop.lower(), crop) for crop in labels]
-
         st.subheader(t["top_crops"])
         for crop, score in topk:
-            st.write(f"- **{crop}** ({score:.2%})")
+            display_crop = crop_trans[crop] if lang == "हिंदी" and crop in crop_trans else crop
+            st.write(f"- **{display_crop}** ({score:.2%})")
 
         st.subheader(t["probabilities"])
         df_proba = pd.DataFrame({"Crop": labels, "Probability": proba})
         df_top = df_proba.sort_values("Probability", ascending=False).head(k)
 
+        if lang == "हिंदी":
+            df_top["Crop"] = df_top["Crop"].apply(lambda c: crop_trans[c] if c in crop_trans else c)
+
         chart = (
             alt.Chart(df_top)
-            .mark_bar(color="#4caf50")
+            .mark_bar(color="#c6ff00")
             .encode(
                 x=alt.X("Probability:Q", axis=alt.Axis(format="%")),
                 y=alt.Y("Crop:N", sort="-x"),
@@ -160,5 +225,3 @@ if st.button(t["recommend"]):
             )
         )
         st.altair_chart(chart, use_container_width=True)
-
-        # hi
