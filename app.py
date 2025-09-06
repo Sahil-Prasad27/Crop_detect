@@ -8,6 +8,8 @@ from urllib3.util.retry import Retry
 from requests.exceptions import ConnectionError as RequestsConnectionError
 from crop_predictor import FEATURES, load_model, recommend_topk, load_metadata
 import time
+import sys, socket
+import streamlit.components.v1 as components
 
 # -------------------------------
 # Paths
@@ -106,6 +108,7 @@ div[data-baseweb="select"] {
 }
 </style>
 """, unsafe_allow_html=True)
+
 
 
 # -------------------------------
@@ -301,6 +304,7 @@ if "last_soil_call" not in st.session_state:
 lang = st.selectbox("", ["English", "हिंदी"], key="language_selector")
 t = trans[lang]
 
+
 # -------------------------------
 # Hero Section (Top-Center)
 # -------------------------------
@@ -309,6 +313,33 @@ st.markdown(f"""
     <h1>{t['hero_title']}</h1>
     <p style="font-size:1.2rem; color:#e0e0e0; margin-top:10px;">{t['hero_sub']}</p>
 </div>
+""", unsafe_allow_html=True)
+
+# st.markdown(f"""
+# <div style="text-align:center; margin-top:50px;">
+#     <h1>{t['hero_title']}</h1>
+#     <p style="font-size:1.2rem; color:#e0e0e0; margin-top:10px;">{t['hero_sub']}</p>
+# </div>
+# """, unsafe_allow_html=True)
+
+# -------------------------------
+# Hyperlink Button — Below Hero
+# -------------------------------
+st.markdown("""
+        <a href="/Chat" style="
+            display: inline-block;
+            background: linear-gradient(90deg, #ff6f00, #ffa000);
+            color: white;
+            padding: 12px 30px;
+            font-weight: 600;
+            border-radius: 50px;
+            text-decoration: none;
+            box-shadow: 0 4px 15px rgba(255, 105, 0, 0.3);
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        ">
+            🌐 Chat bot
+        </a>
 """, unsafe_allow_html=True)
 
 # -------------------------------
