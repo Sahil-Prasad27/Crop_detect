@@ -325,22 +325,7 @@ st.markdown(f"""
 # -------------------------------
 # Hyperlink Button — Below Hero
 # -------------------------------
-st.markdown("""
-        <a href="/Chat" style="
-            display: inline-block;
-            background: linear-gradient(90deg, #ff6f00, #ffa000);
-            color: white;
-            padding: 12px 30px;
-            font-weight: 600;
-            border-radius: 50px;
-            text-decoration: none;
-            box-shadow: 0 4px 15px rgba(255, 105, 0, 0.3);
-            transition: all 0.3s ease;
-            font-size: 1rem;
-        ">
-            🌐 Chat bot
-        </a>
-""", unsafe_allow_html=True)
+st.page_link("pages/Chat.py", label="🌐 Chat bot", icon="💬")
 
 # -------------------------------
 # Weather and Soil Data Section
