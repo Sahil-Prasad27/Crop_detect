@@ -8,3 +8,4 @@ streamlit
 seaborn
 plotly
 google-generativeai
+gTTS
