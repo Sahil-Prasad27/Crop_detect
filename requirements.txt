@@ -6,3 +6,4 @@ matplotlib
 streamlit
 seaborn
 plotly
+tensorflow==2.19.0
