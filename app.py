@@ -11,6 +11,10 @@ import time
 import sys, socket
 import streamlit.components.v1 as components
 
+st.set_page_config(page_title="Gemini Chat", page_icon="🤖")
+if "model" not in st.session_state:
+    st.session_state["model"] = None
+
 # -------------------------------
 # Paths
 # -------------------------------
@@ -98,14 +102,7 @@ div.stNumberInput>label, div.stTextInput>label, div.stSelectbox>label, div.stSli
     .stButton>button { padding: 0.5em 1em; font-size: 0.9rem; }
 }
 
-/* Top-right language selector */
-div[data-baseweb="select"] {
-    position: absolute;
-    top: 15px;
-    right: 15px;
-    width: 150px;
-    z-index: 999;
-}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -299,60 +296,99 @@ if "last_soil_call" not in st.session_state:
     st.session_state.last_soil_call = 0
 
 # -------------------------------
-# Language Selector
+# Language Selector + Hyperlink Buttons (Same Button Style)
 # -------------------------------
-lang = st.selectbox("", ["English", "हिंदी"], key="language_selector")
-t = trans[lang]
-
-
-# -------------------------------
-# Hero Section (Top-Center)
-# -------------------------------
-st.markdown(f"""
-<div style="text-align:center; margin-top:50px;">
-    <h1>{t['hero_title']}</h1>
-    <p style="font-size:1.2rem; color:#e0e0e0; margin-top:10px;">{t['hero_sub']}</p>
-</div>
-""", unsafe_allow_html=True)
-
-# st.markdown(f"""
-# <div style="text-align:center; margin-top:50px;">
-#     <h1>{t['hero_title']}</h1>
-#     <p style="font-size:1.2rem; color:#e0e0e0; margin-top:10px;">{t['hero_sub']}</p>
-# </div>
-# """, unsafe_allow_html=True)
-
-# -------------------------------
-# Hyperlink Button — Below Hero
-# -------------------------------
-
 st.markdown("""
 <style>
-/* Target page link container */
-a[data-testid="stPageLink-NavLink"] {
+/* Top bar container */
+div.top-bar {
+    display: flex;
+    justify-content: space-between;  /* buttons left, lang right */
+    align-items: center;
+    margin-top: 15px;
+    padding: 0 25px;
+}
+
+/* Common button style */
+div.top-bar a, div.top-bar select {
     display: inline-block;
-    background: linear-gradient(90deg, #ff6f00, #ffa000);
+    background: rgba(255, 255, 255, 0.05); /* translucent bg */
     color: white !important;
-    padding: 12px 30px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    padding: 8px 22px;
     font-weight: 600;
     border-radius: 50px;
     text-decoration: none !important;
-    box-shadow: 0 4px 15px rgba(255, 105, 0, 0.3);
     transition: all 0.3s ease;
-    font-size: 1rem;
+    font-size: 0.95rem;
+    margin-right: 12px;
+    box-shadow: 0 0 10px rgba(127, 255, 0, 0.3); /* subtle glow */
+    cursor: pointer;
 }
 
-
 /* Hover effect */
-a[data-testid="stPageLink-NavLink"]:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+div.top-bar a:hover, div.top-bar select:hover {
+    background: rgba(0, 0, 0, 0.8);
+    color: #fff !important;
+    transform: translateY(-2px);
+    box-shadow: 0 0 20px rgba(127, 255, 0, 0.7);
+    border-color: #7FFF00;
+}
+
+/* Dropdown select fix */
+div.top-bar select {
+    border-radius: 50px !important;
+    border: 2px solid rgba(255, 255, 255, 0.3) !important;
+    padding: 8px 22px !important;
+    box-shadow: 0 0 10px rgba(127, 255, 0, 0.3) !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    color: white !important;
+    font-weight: 600 !important;
+    font-size: 0.95rem !important;
 }
 </style>
 """, unsafe_allow_html=True)
 
-st.page_link("pages/Chat.py", label="🌐 Chat bot")
-st.page_link("pages/Diseases.py", label="🍂 Go to Disease Prediction")
+# ---- Layout row: left (buttons), right (language dropdown) ----
+col1, col2 = st.columns([4,1])
+
+with col1:
+    st.markdown("""
+    <div class="top-bar">
+        <div>
+            <a href="/Chat" target="_self">🌐 Chat Bot</a>
+            <a href="/Diseases" target="_self">🍂 Disease Prediction</a>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+with col2:
+    # Use Streamlit's selectbox directly, no extra HTML
+    lang = st.selectbox("", ["English", "हिंदी"], key="language_selector")
+    t = trans[lang]
+
+
+components.html("""
+<script>
+const select = window.parent.document.getElementById("lang-selector");
+select.addEventListener("change", function() {
+    const val = select.value;
+    fetch(window.location.href, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({"lang": val})
+    });
+});
+</script>
+""", height=0)
+
+# Default fallback language
+if "language_selector" not in st.session_state:
+    st.session_state.language_selector = "English"
+
+# Use translated dictionary
+t = trans[st.session_state.language_selector]
+
 
 # -------------------------------
 # Weather and Soil Data Section
@@ -492,10 +528,48 @@ with colR:
         key="rainfall_input"
     )
 
+
 # -------------------------------
-# Crop Recommendation
+# Crop Recommendation (State-aware)
 # -------------------------------
+
+# Define state-wise preferred crops
+state_crop_map = {
+    "Punjab": ["rice", "wheat", "maize"],
+    "Maharashtra": ["sugarcane", "cotton", "soybean"],
+    "Karnataka": ["ragi", "maize", "groundnut"],
+    "Tamil Nadu": ["rice", "millet", "banana"],
+    "Haryana": ["wheat", "rice", "maize"],
+    "Uttar Pradesh": ["sugarcane", "wheat", "rice"],
+    "Bihar": ["rice", "wheat", "maize"],
+    "Rajasthan": ["wheat", "barley", "mustard"],
+    "Gujarat": ["groundnut", "cotton", "wheat"],
+    "West Bengal": ["rice", "jute", "potato"],
+    "Kerala": ["coconut", "banana", "rice"],
+    "Odisha": ["rice", "groundnut", "wheat"],
+    "Madhya Pradesh": ["soybean", "wheat", "chickpea"],
+    "Chhattisgarh": ["rice", "maize", "pulses"],
+    "Jharkhand": ["rice", "maize", "wheat"],
+    "Assam": ["rice", "jute", "banana"],
+    "Himachal Pradesh": ["apple", "wheat", "maize"],
+    "Jammu & Kashmir": ["wheat", "maize", "apple"],
+    "Tripura": ["rice", "maize", "banana"],
+    "Meghalaya": ["rice", "maize", "potato"],
+    "Nagaland": ["rice", "maize", "millet"],
+    "Manipur": ["rice", "maize", "pulses"],
+    "Mizoram": ["rice", "maize", "millet"],
+    "Sikkim": ["rice", "maize", "potato"],
+    "Arunachal Pradesh": ["rice", "maize", "millet"],
+    "Goa": ["rice", "coconut", "cashew"],
+    "Chandigarh": ["wheat", "rice"],
+    "Delhi": ["wheat", "rice"],
+    "Puducherry": ["rice", "banana", "coconut"],
+    "Lakshadweep": ["coconut", "banana", "rice"],
+    "Andaman & Nicobar": ["coconut", "banana", "rice"]
+}
+
 top_k = st.slider(t["top_k"], min_value=1, max_value=10, value=3, key="top_k_slider")
+
 if st.button(t["recommend"], key="recommend_button"):
     if model is None:
         st.error(t["model_not_loaded"])
@@ -504,6 +578,7 @@ if st.button(t["recommend"], key="recommend_button"):
     else:
         with st.spinner("Generating crop recommendations..."):
             try:
+                # Get model predictions
                 topk, proba, labels = recommend_topk(
                     model,
                     N=N, P=P, K=K,
@@ -511,12 +586,21 @@ if st.button(t["recommend"], key="recommend_button"):
                     humidity=humidity,
                     ph=pH,
                     rainfall=rainfall,
-                    k=top_k
+                    k=top_k*2  # get extra crops to filter later
                 )
-                st.write("Debug: Recommendations generated successfully")
+
+                # Prioritize state-preferred crops
+                preferred_crops = state_crop_map.get(state, [])
+                topk_sorted = sorted(
+                    topk,
+                    key=lambda x: (0 if x[0] in preferred_crops else 1, -x[1])
+                )
+
+                # Show only top_k
+                topk_sorted = topk_sorted[:top_k]
 
                 st.subheader(t["top_crops"])
-                for crop, score in topk:
+                for crop, score in topk_sorted:
                     display_crop = crop_trans[crop] if lang == "हिंदी" and crop in crop_trans else crop
                     st.markdown(f"- **{display_crop}** ({score:.2%})")
 
@@ -546,6 +630,7 @@ if st.button(t["recommend"], key="recommend_button"):
                     .configure_view(stroke=None)
                 )
                 st.altair_chart(chart, use_container_width=True)
+
             except Exception as e:
                 st.error(f"Error generating recommendations: {str(e)}")
                 st.write(f"Debug: Input values - N={N}, P={P}, K={K}, pH={pH}, Temp={temperature}, Humidity={humidity}, Rainfall={rainfall}")

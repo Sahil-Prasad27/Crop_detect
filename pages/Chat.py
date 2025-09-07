@@ -9,6 +9,12 @@ import re
 import time
 from datetime import datetime
 
+
+if "model" not in st.session_state:
+    st.session_state["model"] = genai.GenerativeModel("gemini-1.5-flash-8b")
+if "messages" not in st.session_state:
+    st.session_state["messages"] = []  # store chat history
+
 # -------------------------------
 # CONFIG & PATHS
 # -------------------------------
@@ -132,7 +138,7 @@ def load_cached_model():
         model = load_model(MODEL_PATH.as_posix())
         return model
     except (ImportError, FileNotFoundError):
-        st.warning("`crop_predictor` or model file not found. Recommendation engine disabled.")
+        st.warning("crop_predictor or model file not found. Recommendation engine disabled.")
         return None
     except Exception as e:
         st.error(f"❌ Model loading failed: {e}")
@@ -229,12 +235,12 @@ crop_trans = {
 
 DISEASE_REMEDIES = {
     "Strawberry___Leaf_scorch": {
-        "en": """<div class="disease-remedy"><div class="disease-title">🔴 Strawberry Leaf Scorch</div><div class="disease-section">🌿 Symptoms:</div><div class="disease-bullet">• Brown, scorched leaf edges</div><div class="disease-bullet">• Purple spots on leaves</div><div class="disease-bullet">• Leaf curling and premature dropping</div><div class="disease-section">✅ Treatment:</div><div class="disease-bullet">• Prune infected leaves</div><div class="disease-bullet">• Spray Copper Oxychloride (0.3%) every 10 days</div><div class="disease-bullet">• Use neem oil (5ml/L) for organic control</div><div class="disease-section">🛡️ Prevention:</div><div class="disease-bullet">• Space plants 30cm apart for airflow</div><div class="disease-bullet">• Avoid nitrogen-heavy fertilizers</div></div>""",
-        "hi": """<div class="disease-remedy"><div class="disease-title">🔴 स्ट्रॉबेरी लीफ स्कॉर्च</div><div class="disease-section">🌿 लक्षण:</div><div class="disease-bullet">• भूरे, झुलसे हुए पत्तों के किनारे</div><div class="disease-bullet">• पत्तियों पर बैंगनी धब्बे</div><div class="disease-bullet">• पत्तियाँ मुड़ना और गिरना</div><div class="disease-section">✅ उपचार:</div><div class="disease-bullet">• संक्रमित पत्तियाँ काटें</div><div class="disease-bullet">• हर 10 दिन में कॉपर ऑक्सीक्लोराइड (0.3%) छिड़कें</div><div class="disease-bullet">• जैविक नियंत्रण के लिए नीम तेल (5 मिली/लीटर) का उपयोग करें</div><div class="disease-section">🛡️ रोकथाम:</div><div class="disease-bullet">• हवा के प्रवाह के लिए पौधों को 30 सेमी दूर रखें</div><div class="disease-bullet">• नाइट्रोजन युक्त उर्वरकों से बचें</div></div>"""
+        "en": """<div class="disease-remedy"><div class="disease-title">🔴 Strawberry Leaf Scorch</div><div class="disease-section">🌿 Symptoms:</div><div class="disease-bullet">• Brown, scorched leaf edges</div><div class="disease-bullet">• Purple spots on leaves</div><div class="disease-bullet">• Leaf curling and premature dropping</div><div class="disease-section">✅ Treatment:</div><div class="disease-bullet">• Prune infected leaves</div><div class="disease-bullet">• Spray Copper Oxychloride (0.3%) every 10 days</div><div class="disease-bullet">• Use neem oil (5ml/L) for organic control</div><div class="disease-section">🛡 Prevention:</div><div class="disease-bullet">• Space plants 30cm apart for airflow</div><div class="disease-bullet">• Avoid nitrogen-heavy fertilizers</div></div>""",
+        "hi": """<div class="disease-remedy"><div class="disease-title">🔴 स्ट्रॉबेरी लीफ स्कॉर्च</div><div class="disease-section">🌿 लक्षण:</div><div class="disease-bullet">• भूरे, झुलसे हुए पत्तों के किनारे</div><div class="disease-bullet">• पत्तियों पर बैंगनी धब्बे</div><div class="disease-bullet">• पत्तियाँ मुड़ना और गिरना</div><div class="disease-section">✅ उपचार:</div><div class="disease-bullet">• संक्रमित पत्तियाँ काटें</div><div class="disease-bullet">• हर 10 दिन में कॉपर ऑक्सीक्लोराइड (0.3%) छिड़कें</div><div class="disease-bullet">• जैविक नियंत्रण के लिए नीम तेल (5 मिली/लीटर) का उपयोग करें</div><div class="disease-section">🛡 रोकथाम:</div><div class="disease-bullet">• हवा के प्रवाह के लिए पौधों को 30 सेमी दूर रखें</div><div class="disease-bullet">• नाइट्रोजन युक्त उर्वरकों से बचें</div></div>"""
     },
     "Tomato___Late_blight": {
-        "en": """<div class="disease-remedy"><div class="disease-title">🔴 Tomato Late Blight</div><div class="disease-section">🌿 Symptoms:</div><div class="disease-bullet">• Water-soaked spots on leaves</div><div class="disease-bullet">• White mold under leaves</div><div class="disease-bullet">• Rapid wilting</div><div class="disease-section">✅ Treatment:</div><div class="disease-bullet">• Remove and burn infected plants</div><div class="disease-bullet">• Spray Mancozeb (0.25%) every 7 days</div><div class="disease-bullet">• Use garlic-chili spray for organic option</div><div class="disease-section">🛡️ Prevention:</div><div class="disease-bullet">• Plant resistant varieties</div><div class="disease-bullet">• Use drip irrigation</div><div class="disease-bullet">• Rotate crops yearly</div></div>""",
-        "hi": """<div class="disease-remedy"><div class="disease-title">🔴 टमाटर लेट ब्लाइट</div><div class="disease-section">🌿 लक्षण:</div><div class="disease-bullet">• पत्तियों पर पानी से भरे धब्बे</div><div class="disease-bullet">• पत्तियों के नीचे सफेद फफूंद</div><div class="disease-bullet">• तेजी से मुरझाना</div><div class="disease-section">✅ उपचार:</div><div class="disease-bullet">• संक्रमित पौधों को हटाकर जलाएं</div><div class="disease-bullet">• हर 7 दिन में मैनकोज़ेब (0.25%) छिड़कें</div><div class="disease-bullet">• जैविक विकल्प के लिए लहसुन-मिर्च का छिड़काव करें</div><div class="disease-section">🛡️ रोकथाम:</div><div class="disease-bullet">• प्रतिरोधी किस्में लगाएं</div><div class="disease-bullet">• ड्रिप सिंचाई का उपयोग करें</div><div class="disease-bullet">• हर साल फसल बदलें</div></div>"""
+        "en": """<div class="disease-remedy"><div class="disease-title">🔴 Tomato Late Blight</div><div class="disease-section">🌿 Symptoms:</div><div class="disease-bullet">• Water-soaked spots on leaves</div><div class="disease-bullet">• White mold under leaves</div><div class="disease-bullet">• Rapid wilting</div><div class="disease-section">✅ Treatment:</div><div class="disease-bullet">• Remove and burn infected plants</div><div class="disease-bullet">• Spray Mancozeb (0.25%) every 7 days</div><div class="disease-bullet">• Use garlic-chili spray for organic option</div><div class="disease-section">🛡 Prevention:</div><div class="disease-bullet">• Plant resistant varieties</div><div class="disease-bullet">• Use drip irrigation</div><div class="disease-bullet">• Rotate crops yearly</div></div>""",
+        "hi": """<div class="disease-remedy"><div class="disease-title">🔴 टमाटर लेट ब्लाइट</div><div class="disease-section">🌿 लक्षण:</div><div class="disease-bullet">• पत्तियों पर पानी से भरे धब्बे</div><div class="disease-bullet">• पत्तियों के नीचे सफेद फफूंद</div><div class="disease-bullet">• तेजी से मुरझाना</div><div class="disease-section">✅ उपचार:</div><div class="disease-bullet">• संक्रमित पौधों को हटाकर जलाएं</div><div class="disease-bullet">• हर 7 दिन में मैनकोज़ेब (0.25%) छिड़कें</div><div class="disease-bullet">• जैविक विकल्प के लिए लहसुन-मिर्च का छिड़काव करें</div><div class="disease-section">🛡 रोकथाम:</div><div class="disease-bullet">• प्रतिरोधी किस्में लगाएं</div><div class="disease-bullet">• ड्रिप सिंचाई का उपयोग करें</div><div class="disease-bullet">• हर साल फसल बदलें</div></div>"""
     },
     "default": {
         "en": "I'm still learning about this. Can you describe symptoms or ask something else?",
@@ -340,11 +346,11 @@ bot_placeholder = st.empty()
 # GEMINI & HELPER FUNCTIONS
 # -------------------------------
 def setup_gemini():
-    try:
+    if st.session_state["model"] is None:
         genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
-        return genai.GenerativeModel('gemini-1.5-flash-latest')
-    except Exception:
-        return None
+        st.session_state["model"] = genai.GenerativeModel("gemini-1.5-flash")
+    return st.session_state["model"]
+
 
 def extract_with_regex(prompt):
     extracted = {}
@@ -370,7 +376,7 @@ def extract_parameters_strict(prompt, llm_model):
     extraction_prompt = f"Extract ONLY numeric values for: {FEATURES}. Return JSON like {{\"N\": 90, \"ph\": 6.5}}. If unsure, return {{}}. USER: \"{prompt}\""
     try:
         response = llm_model.generate_content(extraction_prompt, generation_config={"temperature": 0.1})
-        raw_text = response.text.strip().replace("```json", "").replace("```", "").strip()
+        raw_text = response.text.strip().replace("json", "").replace("", "").strip()
         data = json.loads(raw_text)
         if isinstance(data, dict):
             return {key: float(value) for key, value in data.items() if key in FEATURES and isinstance(value, (int, float))}
@@ -382,7 +388,8 @@ def generate_free_response(prompt, llm_model, lang):
     full_prompt = f"""
     You are AgriBot, a friendly expert farming assistant in India. {lang_note}
     Answer the following question in simple, clear bullet points. Use line breaks for readability.
-    DO NOT use Markdown like ** or ###. Use plain text with • for bullets.
+    DO NOT use Markdown like ** or ###. Use plain text with • for bullets
+    keep answer short.
     Question: {prompt}
     """
     try:
@@ -392,8 +399,7 @@ def generate_free_response(prompt, llm_model, lang):
         return "I'm having trouble thinking right now. Try again in a moment 🙏"
 
 # ✅ FIXED: Typing Effect Simulator — No flicker, clean rendering
-def simulate_typing(text, placeholder, delay=0.015):
-    """Reveal text character by character WITHOUT flickering HTML/Markdown"""
+def simulate_typing(text, placeholder, delay=0.01, chunk_size=20):
     full_html_template = """
     <div style="display: flex; justify-content: flex-start;">
         <div class="bot-message">
@@ -405,9 +411,8 @@ def simulate_typing(text, placeholder, delay=0.015):
     timestamp = datetime.now().strftime("%H:%M")
 
     displayed_text = ""
-    for char in text:
-        displayed_text += char
-        # Convert newlines to <br> for safe HTML rendering
+    for i in range(0, len(text), chunk_size):
+        displayed_text += text[i:i+chunk_size]
         safe_text = displayed_text.replace("\n", "<br>")
         rendered_html = full_html_template.format(
             typed_text=safe_text,
@@ -415,6 +420,7 @@ def simulate_typing(text, placeholder, delay=0.015):
         )
         placeholder.markdown(rendered_html, unsafe_allow_html=True)
         time.sleep(delay)
+
 
 llm = setup_gemini()
 
@@ -462,7 +468,7 @@ if st.session_state.messages and st.session_state.messages[-1]["role"] == "user"
             rec_html = f"### {t['final_recommendation']}\n\n"
             for i, (crop, score) in enumerate(topk):
                 name = crop_trans.get(crop, crop) if lang == "हिंदी" else crop.capitalize()
-                rec_html += f"**{i+1}. {name}** — {score:.1%} confidence\n"
+                rec_html += f"{i+1}. {name}** — {score:.1%} confidence\n"
             response_content = rec_html
             st.session_state.chat_crop_params = {}
             is_typing_effect = False
