@@ -24,153 +24,100 @@ st.set_page_config(
 )
 
 # -------------------------------
-# MODERN UI - REFINED CSS
+# MODERN UI - GLASSMORPHISM STYLE (From Disease Detection App)
 # -------------------------------
 st.markdown("""
-    <style>
-    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+<style>
+.stApp {
+    background: linear-gradient(to bottom, rgba(0,0,0,0.6), rgba(0,0,0,0.6)), 
+                url('https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=1920&q=80') 
+                no-repeat center center fixed;
+    background-size: cover;
+    color: #ffffff;
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+    overflow-x: hidden;
+}
 
-    /* --- Base & Background --- */
-    .stApp {
-        background: linear-gradient(170deg, #0d1b2a, #1b263b, #0d1b2a);
-        color: #e0e1dd;
-        font-family: 'Poppins', sans-serif;
-    }
+/* Glassy components */
+section, .stButton, .stNumberInput, .stTextInput, .stSelectbox, .stSlider, .stFileUploader, .recommendation-card, .user-message, .bot-message {
+    background: rgba(255, 255, 255, 0.1) !important;
+    backdrop-filter: blur(12px);
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 15px;
+    color: #ffffff;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
 
-    /* --- Headers --- */
-    h1, h2, h3 {
-        font-family: 'Poppins', sans-serif;
-        color: #ffffff !important;
-        font-weight: 700;
-    }
+/* Headings */
+h1 {
+    color: #aaff00;
+    font-size: 3rem;
+    text-align: center;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+    animation: fadeIn 1.5s ease-in-out;
+}
+h2, h3 {
+    color: #ffffff;
+    font-size: 1.8rem;
+    margin-top: 20px;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
 
-    /* --- Buttons --- */
-    div.stButton > button {
-        background: linear-gradient(90deg, #ffb703, #fb8500);
-        color: #0d1b2a;
-        border-radius: 12px;
-        padding: 0.7em 1.8em;
-        font-weight: 700;
-        border: none;
-        box-shadow: 0 5px 20px rgba(251, 133, 0, 0.25);
-        transition: all 0.3s ease;
-        font-size: 1.05rem;
-    }
-    div.stButton > button:hover {
-        transform: translateY(-3px) scale(1.02);
-        box-shadow: 0 8px 25px rgba(251, 133, 0, 0.35);
-    }
-    div.stButton > button:active {
-        transform: translateY(-1px) scale(0.98);
-    }
-    
-    /* --- Expander (for optional form) --- */
-    .st-emotion-cache-paepd0 {
-        background-color: rgba(27, 38, 59, 0.7);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 16px;
-        backdrop-filter: blur(10px);
-    }
+/* Buttons */
+.stButton>button {
+    background: linear-gradient(90deg, #aaff00 0%, #76ff03 100%);
+    color: #000;
+    font-weight: 600;
+    border-radius: 10px;
+    padding: 0.7em 1.5em;
+    font-size: 1rem;
+    border: none;
+    transition: all 0.3s ease;
+}
+.stButton>button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
 
-    /* --- Inputs (inside expander) --- */
-    div[data-baseweb="select"] > div,
-    div.stNumberInput > div > div {
-        background-color: rgba(13, 27, 42, 0.8) !important;
-        color: #e0e1dd !important;
-        border-radius: 10px;
-        border: 1px solid #415a77;
-    }
-    
-    /* --- Chat & Cards (Glassmorphism) --- */
-    .recommendation-card, .disease-remedy, .user-message, .bot-message, .thinking-bubble {
-        background: rgba(27, 38, 59, 0.6);
-        border-radius: 18px;
-        padding: 18px 24px;
-        margin-bottom: 12px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(12px);
-        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-    }
+/* File uploader labels */
+div.stFileUploader>label {
+    color: #aaff00;
+    font-weight: 600;
+    font-size: 1rem;
+}
 
-    /* --- Chat Messages --- */
-    .user-message {
-        border-radius: 18px 18px 4px 18px;
-        background: rgba(255, 183, 3, 0.15);
-        border-color: rgba(255, 183, 3, 0.2);
-    }
-    .bot-message {
-        border-radius: 18px 18px 18px 4px;
-        background: rgba(34, 139, 230, 0.15);
-        border-color: rgba(34, 139, 230, 0.2);
-    }
-    .chat-timestamp {
-        font-size: 0.75rem; color: #778da9; margin-top: 8px;
-    }
+/* Chat Bubbles */
+.user-message {
+    border-radius: 18px 18px 4px 18px;
+    background: rgba(170, 255, 0, 0.15);
+    border: 1px solid rgba(170, 255, 0, 0.3);
+}
+.bot-message {
+    border-radius: 18px 18px 18px 4px;
+    background: rgba(118, 255, 3, 0.15);
+    border: 1px solid rgba(118, 255, 3, 0.3);
+}
+.chat-timestamp {
+    font-size: 0.75rem; color: #e0e0e0; margin-top: 8px;
+}
 
-    /* --- Recommendation Cards --- */
-    .crop-name {
-        font-size: 1.3rem; color: #219ebc; font-weight: 600;
-    }
-    .crop-confidence {
-        font-size: 1rem; color: #8ecae6;
-    }
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-15px); }
+    to { opacity: 1; transform: translateY(0); }
+}
 
-    /* --- Disease Box --- */
-    .disease-remedy {
-        border-left: 5px solid #d00000;
-        background: rgba(208, 0, 0, 0.1);
-    }
-    .disease-title {
-        color: #ff6b6b; font-size: 1.4rem; font-weight: 700;
-    }
-    .disease-section {
-        color: #ff8fa3; font-weight: 600; margin-top: 10px;
-    }
-    .disease-bullet {
-        margin-left: 20px; font-size: 0.95rem; color: #e0e1dd;
-    }
-    
-    /* --- Thinking Animation --- */
-    .thinking-text { color: #8ecae6; font-weight: 500; }
-    .typing-dots span {
-        background-color: #8ecae6;
-        animation: typing 1.4s infinite ease-in-out;
-    }
-    .typing-dots span:nth-child(1) { animation-delay: 0s; }
-    .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
-    .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
-    @keyframes typing {
-        0%, 60%, 100% { transform: translateY(0); }
-        30% { transform: translateY(-6px); }
-    }
-    
-    /* --- Enhanced Chat Input Bar --- */
-    div[data-testid="stChatInput"] {
-        background: linear-gradient(to top, #0d1b2a, transparent);
-        border-top: 1px solid rgba(129, 140, 152, 0.2);
-        padding-top: 1rem;
-    }
-    .st-emotion-cache-12fmjuu {
-        background: rgba(27, 38, 59, 0.8);
-        border: 1px solid #415a77;
-        border-radius: 16px;
-        backdrop-filter: blur(10px);
-    }
-    textarea[data-testid="stChatInputTextArea"] {
-        color: #e0e1dd;
-        font-weight: 500;
-    }
-    textarea[data-testid="stChatInputTextArea"]::placeholder {
-        color: #778da9;
-    }
-    button[data-testid="sendButton"] svg {
-        fill: #8ecae6;
-    }
-
-    /* --- Hide Streamlit Footer --- */
-    footer { visibility: hidden; }
-    </style>
+/* Mobile */
+@media (max-width: 768px) {
+    h1 { font-size: 2.2rem; }
+    h2 { font-size: 1.5rem; }
+    .stButton>button { padding: 0.5em 1em; font-size: 0.9rem; }
+}
+</style>
 """, unsafe_allow_html=True)
+
 
 # -------------------------------
 # HELPER FUNCTIONS & MODEL LOADING
@@ -559,15 +506,3 @@ if st.session_state.messages and st.session_state.messages[-1]["role"] == "assis
 # A more stable pattern is to not mix direct rendering and reruns so heavily.
 # But for the purpose of fixing the immediate code, the primary issue was in the main
 # CHAT INPUT block. The corrected logic simplifies the final step.
-
-
-# -------------------------------
-# CUSTOM FOOTER
-# -------------------------------
-st.markdown("""
-    <div style="text-align: center; padding: 2rem; margin-top: 2rem; border-top: 1px solid #415a77;">
-        <p style="color: #778da9; font-size: 0.9rem;">
-            🌿 AgriBot AI — Built with ❤️ for Sustainable Farming in India
-        </p>
-    </div>
-""", unsafe_allow_html=True)

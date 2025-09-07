@@ -6,4 +6,3 @@ matplotlib
 streamlit
 seaborn
 plotly
-google-generativeai
