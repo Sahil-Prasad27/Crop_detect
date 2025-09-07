@@ -4,7 +4,7 @@ import tensorflow as tf
 from pathlib import Path
 from tensorflow.keras.preprocessing import image
 
-DISEASE_MODEL_PATH = "plant_disease_model.h5"
+DISEASE_MODEL_PATH = "./plant_disease_model.h5"
 LABELS_PATH = "class_labels.json"
 
 # Load CNN model
