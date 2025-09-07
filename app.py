@@ -138,7 +138,7 @@ def get_weather_data(location):
 SOIL_URL = "https://rest.isric.org/soilgrids/v2.0/properties/query"
 
 def get_soil_data(lat, lon):
-    default_soil = {"N": 50.0, "pH": 6.5, "P": None, "K": None}
+    default_soil = {"N": 50.0, "pH": 6.5,}
     try:
         session = requests.Session()
         retries = Retry(total=10, backoff_factor=2,
@@ -184,9 +184,7 @@ def get_soil_data(lat, lon):
                     n_val = mean_val / 100.0
         soil_data = {
             "N": round(n_val * 100, 2) if n_val is not None else default_soil["N"],
-            "pH": round(ph_val, 2) if ph_val is not None else default_soil["pH"],
-            "P": default_soil["P"],
-            "K": default_soil["K"]
+            "pH": round(ph_val, 2) if ph_val is not None else default_soil["pH"]
         }
         return soil_data, None
     except Exception as e:
@@ -397,8 +395,9 @@ st.header(t["enter_location"])
 col1, col2 = st.columns([1, 1], gap="medium")
 
 with col1:
-    location = st.text_input(t["enter_location"], key="location_input")
+    
     state = st.selectbox(t["select_state"], states, key="state_select")
+    location = st.text_input(t["enter_location"], key="location_input")
 
 # Fetch P and K from selected state
 P_default, K_default = 50.0, 50.0
@@ -602,7 +601,7 @@ if st.button(t["recommend"], key="recommend_button"):
                 st.subheader(t["top_crops"])
                 for crop, score in topk_sorted:
                     display_crop = crop_trans[crop] if lang == "हिंदी" and crop in crop_trans else crop
-                    st.markdown(f"- **{display_crop}** ({score:.2%})")
+                    st.markdown(f"- {display_crop}")
 
                 st.subheader(t["probabilities"])
                 df_proba = pd.DataFrame({"Crop": labels, "Probability": proba})

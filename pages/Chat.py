@@ -8,7 +8,8 @@ import json
 import re
 import time
 from datetime import datetime
-
+from gtts import gTTS
+import io
 
 if "model" not in st.session_state:
     st.session_state["model"] = genai.GenerativeModel("gemini-1.5-flash-8b")
@@ -128,6 +129,22 @@ div.stFileUploader>label {
 # -------------------------------
 # HELPER FUNCTIONS & MODEL LOADING
 # -------------------------------
+
+
+def speak_text(text, lang_code="en"):
+    """
+    Converts text to speech and returns a playable audio in Streamlit.
+    lang_code: 'en' for English, 'hi' for Hindi
+    """
+    try:
+        tts = gTTS(text=text, lang=lang_code)
+        audio_bytes = io.BytesIO()
+        tts.write_to_fp(audio_bytes)
+        audio_bytes.seek(0)
+        return audio_bytes
+    except Exception as e:
+        st.warning(f"Text-to-Speech failed: {e}")
+        return None
 def get_lang_code(lang_name):
     return "hi" if lang_name == "हिंदी" else "en"
 
@@ -487,6 +504,12 @@ if st.session_state.messages and st.session_state.messages[-1]["role"] == "user"
         "content": response_content,
         "timestamp": datetime.now().strftime("%H:%M")
     })
+    lang_code = "hi" if lang == "हिंदी" else "en"
+    audio_stream = speak_text(response_content, lang_code=lang_code)
+    if audio_stream:
+        st.audio(audio_stream, format="audio/mp3")
+
+
 
     if is_typing_effect:
         # This block will be skipped now, we'll rerun to render the typing effect
@@ -511,4 +534,4 @@ if st.session_state.messages and st.session_state.messages[-1]["role"] == "assis
 # The logic above is slightly flawed because of reruns clearing placeholders.
 # A more stable pattern is to not mix direct rendering and reruns so heavily.
 # But for the purpose of fixing the immediate code, the primary issue was in the main
-# CHAT INPUT block. The corrected logic simplifies the final step.
+# CHAT INPUT block. The corrected logic simplifies the final step.

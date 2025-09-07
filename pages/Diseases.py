@@ -120,20 +120,47 @@ st.markdown(f"""
 # -------------------------------
 # File Upload
 # -------------------------------
-uploaded_file = st.file_uploader(t["upload"], type=["jpg", "jpeg", "png"])
+# -------------------------------
+# File Upload OR Camera Capture
+# -------------------------------
+# -------------------------------
+# Choose Input Method
+# -------------------------------
+option = st.radio(
+    "Choose Image Source:",
+    ["📤 Upload Photo", "📸 Take Photo with Camera"],
+    horizontal=True
+)
 
-if uploaded_file is not None:
+image_source = None
+
+if option == "📤 Upload Photo":
+    uploaded_file = st.file_uploader(t["upload"], type=["jpg", "jpeg", "png"])
+    if uploaded_file is not None:
+        image_source = uploaded_file
+
+elif option == "📸 Take Photo with Camera":
+    camera_file = st.camera_input("📷 Take a Picture")
+    if camera_file is not None:
+        image_source = camera_file
+
+# -------------------------------
+# Save and Predict
+# -------------------------------
+if image_source is not None:
     os.makedirs("uploads", exist_ok=True)
-    img_path = f"uploads/{uploaded_file.name}"
+    img_path = f"uploads/{image_source.name}"
     with open(img_path, "wb") as f:
-        f.write(uploaded_file.getbuffer())
+        f.write(image_source.getbuffer())
+
+    st.image(img_path, caption="Selected Image", use_column_width=True)
 
     if st.button(t["predict"]):
         with st.spinner("Analyzing image..."):
             predicted_class, prediction_probs = predict_disease(img_path)
 
         st.subheader(t["result"])
-        st.success(f"**Prediction:** {predicted_class} ({prediction_probs:.2f}%)")
+        st.success(f"*Prediction:* {predicted_class} ({prediction_probs:.2f}%)")
 
         st.subheader(t["probabilities"])
         st.write(prediction_probs)
